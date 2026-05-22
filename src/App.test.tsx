@@ -1,100 +1,117 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import App from './App';
 
-const sampleCsv = `mentor_id,startup_id,hours_synced,milestones_completed,blockers_identified,founder_confidence_score,mentor_confidence_score
-M-104,S-LOOP,7,Drafted GTM strategy and completed pricing test,Enterprise buyer intro still blocked by unclear champion,8,8
-M-207,S-ORBIT,6,Refined investor narrative and resolved pilot objections,Needs stronger proof around deployment timeline,8,9
-M-116,S-NORTH,4,Reviewed onboarding map,Next milestone owner unclear and founder follow-through uneven,5,6
-M-319,S-KIN,8,Closed first design partner and reviewed renewal plan,No material blocker identified this month,9,9
-M-058,S-PULSE,5,Completed technical risk review,Integration blocker escalated to product mentor,6,7
-M-104,S-VAULT,6,Clarified ICP and revised sales sequence,Pipeline quality still mixed,7,8
-M-221,S-HELIOS,3,Reviewed hiring plan,Low sync hours and founder confidence dipped after missed sprint,4,5
-M-207,S-FERN,7,Completed retention analysis and success metrics,Needs clearer customer expansion owner,8,8
-M-410,S-LOOP,5,Reviewed enterprise proposal draft,Procurement objection still unresolved,7,7
-M-319,S-NOVA,8,Finalized launch checklist and demo narrative,No blocker identified beyond scheduling,9,8
-M-058,S-HELIOS,6,Rebuilt sprint plan with measurable owner,Technical blocker reduced but not closed,7,7
-M-221,S-PULSE,4,Reviewed clinical validation memo,Founder remains uncertain on regulatory sequencing,6,6`;
-
-function createStorageStub() {
-  const store = new Map<string, string>();
-  return {
-    getItem: vi.fn((key: string) => store.get(key) ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      store.set(key, value);
-    }),
-    removeItem: vi.fn((key: string) => {
-      store.delete(key);
-    }),
-  };
-}
-
 describe('App', () => {
-  beforeEach(() => {
-    vi.stubGlobal('localStorage', createStorageStub());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('renders the dashboard shell', () => {
+  it('renders the ecosystem relationship OS mock', () => {
     render(<App />);
 
-    expect(screen.getByText('Cohort Atlas')).toBeVisible();
-    expect(screen.getByText('Mentor-startup relationship graph')).toBeVisible();
-    expect(screen.getByText('Stale signal before monthly update')).toBeVisible();
-    expect(screen.getByRole('button', { name: /reset demo/i })).toBeVisible();
-    expect(screen.getByRole('button', { name: /process raw information/i })).toBeVisible();
-    expect(screen.getByRole('button', { name: /use sample csv/i })).toBeVisible();
+    expect(screen.getByText('Relationship OS')).toBeVisible();
+    expect(screen.getByText('linkedin.com/company/pulsegrid-health')).toBeVisible();
+    expect(screen.getByText('Recommended relationship bundle')).toBeVisible();
+    expect(screen.getByText('Relationships to create')).toBeVisible();
+    expect(screen.getByText('What AI reads after LinkedIn')).toBeVisible();
+    expect(screen.getByText('What the product collects quietly')).toBeVisible();
+    expect(screen.getByText('Automate discovery and evidence. Keep humans on judgement and governance.')).toBeVisible();
   });
 
-  it('processes the sample CSV and resets back to baseline', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(sampleCsv, { status: 200 })),
-    );
-
+  it('orders the page as next steps, supporting insights, then ingestion', () => {
     render(<App />);
 
-    await userEvent.click(screen.getByRole('button', { name: /process raw information/i }));
+    const nextSteps = screen.getByText('Relationships to create');
+    const supportingInsights = screen.getByText('Recommended relationship bundle');
+    const signalLayer = screen.getByText('What AI reads after LinkedIn');
+    const ingestion = screen.getByText('Add relationship evidence');
 
-    expect(await screen.findByText('Baseline 48 -> refreshed 70 (+22 pts).')).toBeVisible();
-    expect(screen.getAllByText('85%')[0]).toBeVisible();
-    expect(screen.getByText('12 monthly rows processed.')).toBeVisible();
-    expect(screen.getByText('Mentor-startup relationship graph')).toBeVisible();
-    expect(screen.getByText('Updated after raw information pass')).toBeVisible();
-    expect(screen.getByText('Cohort-level insight drawer')).toBeVisible();
-    expect(screen.getByText('Ranked relationship evaluations')).toBeVisible();
-    expect(
-      screen.getByText(/Monthly mentor records show materially stronger cohort signal/i),
-    ).toBeVisible();
-
-    await userEvent.click(screen.getByRole('button', { name: /reset demo/i }));
-
-    expect(screen.getByText('Baseline cohort health is holding at 48 pending the monthly sync.')).toBeVisible();
-    expect(screen.getByText('Pending')).toBeVisible();
-    expect(screen.queryByText('Cohort-level insight drawer')).not.toBeInTheDocument();
+    expect(nextSteps.compareDocumentPosition(supportingInsights) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(supportingInsights.compareDocumentPosition(signalLayer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(signalLayer.compareDocumentPosition(ingestion) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('selects a relationship from the processed graph trace controls', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(sampleCsv, { status: 200 })),
-    );
-
+  it('processes relationship evidence and opens a recommendation review', async () => {
     render(<App />);
 
     await userEvent.click(screen.getByRole('button', { name: /process raw information/i }));
 
-    expect(await screen.findByText('Cohort-level insight drawer')).toBeVisible();
+    expect(screen.getByText('Evidence processed from 8 sources.')).toBeVisible();
+    expect(screen.getByText('Relationship evidence ready')).toBeVisible();
+    expect(screen.getAllByText('18')).toHaveLength(2);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Select Maya Chen to LoopPay, healthy relationship' }));
+    await userEvent.click(screen.getByRole('button', { name: /review create programme link/i }));
 
-    expect(screen.getByText('Selected relationship review')).toBeVisible();
-    expect(screen.getByText('Maya Chen -> LoopPay')).toBeVisible();
-    expect(screen.getByText(/recovered mentor fit/i)).toBeVisible();
-    expect(screen.getByText(/secure a named enterprise champion/i)).toBeVisible();
+    expect(screen.getByText('Selected recommendation')).toBeVisible();
+    expect(screen.getAllByText('PulseGrid to Health Sandbox')).toHaveLength(2);
+    expect(screen.getAllByText(/Programme criteria match/i)).toHaveLength(2);
+  });
+
+  it('lets admins approve links or request missing evidence', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('button', { name: /process raw information/i }));
+    await userEvent.click(screen.getByRole('button', { name: /approve attach service provider/i }));
+    await userEvent.click(screen.getByRole('button', { name: /request evidence for escalate partner pathway/i }));
+
+    expect(screen.getByText('1 approved')).toBeVisible();
+    expect(screen.getByText('1 evidence request')).toBeVisible();
+    expect(screen.getByText('Approved')).toBeVisible();
+    expect(screen.getByText('Evidence requested')).toBeVisible();
+  });
+
+  it('switches to the service provider lens for deployment opportunities', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('button', { name: /service provider lens/i }));
+
+    expect(screen.getAllByText('MedReg Studio')).toHaveLength(2);
+    expect(screen.getByText('Provider deployment queue')).toBeVisible();
+    expect(screen.getByText('Which companies or programmes should this provider support next?')).toBeVisible();
+    expect(screen.getAllByText('PulseGrid regulatory sprint')).toHaveLength(2);
+    expect(screen.getByText('Provider Capacity')).toBeVisible();
+    expect(screen.getByText('Readiness Clinic')).toBeVisible();
+  });
+
+  it('shows ranked partner opportunities in the partner lens', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('button', { name: /partner rankings lens/i }));
+
+    expect(screen.getByText('Ranked partner opportunities')).toBeVisible();
+    expect(screen.getByText('Which partners are most worth pursuing now?')).toBeVisible();
+    expect(screen.getByText('#1')).toBeVisible();
+    expect(screen.getAllByText('Regional Hospital Network')).toHaveLength(2);
+    expect(screen.getAllByText('Pilot pathway')).toHaveLength(2);
+    expect(screen.getByText('Warm intro')).toBeVisible();
+    expect(screen.getByText('Partner ranking detail')).toBeVisible();
+  });
+
+  it('shows ranked mentor opportunities in the mentor lens', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('button', { name: /mentor rankings lens/i }));
+
+    expect(screen.getByText('Ranked mentor opportunities')).toBeVisible();
+    expect(screen.getByText('Which mentors should support this founder next?')).toBeVisible();
+    expect(screen.getByText('#1')).toBeVisible();
+    expect(screen.getAllByText('Priya Raman')).toHaveLength(2);
+    expect(screen.getAllByText('Architecture mentor')).toHaveLength(2);
+    expect(screen.getByText('Fast cadence')).toBeVisible();
+    expect(screen.getByText('Mentor ranking detail')).toBeVisible();
+  });
+
+  it('makes WhatsApp upload a prominent relationship evidence source', async () => {
+    render(<App />);
+
+    expect(screen.getByText('Add relationship evidence')).toBeVisible();
+    expect(screen.getByText('WhatsApp conversation export')).toBeVisible();
+    expect(screen.getByText('Prominent source')).toBeVisible();
+
+    await userEvent.click(screen.getByRole('button', { name: /queue whatsapp export/i }));
+
+    expect(screen.getByText('WhatsApp evidence queued for AI extraction.')).toBeVisible();
+    expect(screen.getByText('Conversation signals')).toBeVisible();
+    expect(screen.getByText('Actors, blockers, commitments, follow-ups, and relationship warmth.')).toBeVisible();
+    expect(screen.getByText('Mentorship signals')).toBeVisible();
+    expect(screen.getByText('Mentor responsiveness, advice quality, unresolved asks, and follow-up gaps.')).toBeVisible();
   });
 });
